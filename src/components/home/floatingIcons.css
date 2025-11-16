@@ -1,0 +1,123 @@
+.floating-icons-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.floating-icon {
+    position: absolute;
+    font-size: 3.5rem;
+    color: var(--icon-color);
+    opacity: 0.5;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+    animation: float var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+    left: var(--x-start);
+    top: var(--y-start);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Enhanced visibility in dark mode */
+html.dark .floating-icon {
+    opacity: 0.6;
+    filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.4)) 
+            drop-shadow(0 0 20px var(--icon-color));
+    animation: floatDark var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+}
+
+.floating-icon:hover {
+    opacity: 1;
+    transform: scale(1.4) rotate(360deg);
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5))
+            drop-shadow(0 0 30px var(--icon-color));
+}
+
+html.dark .floating-icon:hover {
+    opacity: 1;
+    filter: drop-shadow(0 8px 20px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 40px var(--icon-color));
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate(100px, -100px) rotate(90deg) scale(1.2);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translate(50px, -200px) rotate(180deg) scale(1);
+        opacity: 0.4;
+    }
+    75% {
+        transform: translate(-50px, -100px) rotate(270deg) scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(0, 0) rotate(360deg) scale(1);
+        opacity: 0.3;
+    }
+}
+
+@keyframes floatDark {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 0.5;
+    }
+    25% {
+        transform: translate(100px, -100px) rotate(90deg) scale(1.2);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translate(50px, -200px) rotate(180deg) scale(1);
+        opacity: 0.6;
+    }
+    75% {
+        transform: translate(-50px, -100px) rotate(270deg) scale(1.1);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translate(0, 0) rotate(360deg) scale(1);
+        opacity: 0.5;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .floating-icon {
+        font-size: 2.5rem;
+    }
+    
+    @keyframes float {
+        0% {
+            transform: translate(0, 0) rotate(0deg) scale(1);
+            opacity: 0.3;
+        }
+        25% {
+            transform: translate(50px, -50px) rotate(90deg) scale(1.1);
+            opacity: 0.5;
+        }
+        50% {
+            transform: translate(25px, -100px) rotate(180deg) scale(1);
+            opacity: 0.4;
+        }
+        75% {
+            transform: translate(-25px, -50px) rotate(270deg) scale(1.05);
+            opacity: 0.6;
+        }
+        100% {
+            transform: translate(0, 0) rotate(360deg) scale(1);
+            opacity: 0.3;
+        }
+    }
+}
