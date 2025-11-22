@@ -1,0 +1,139 @@
+.rotating-tools-wrapper {
+    width: 100%;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+    margin: 2rem 0;
+}
+
+.scene {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.cube {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.1s;
+}
+
+.cube-face {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    transition: all 0.3s ease;
+}
+
+.face-light {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.face-dark {
+    background: rgba(31, 41, 55, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tool-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tool-icon {
+    font-size: 4rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.tool-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Cube faces positioning */
+.face-1 {
+    transform: rotateY(0deg) translateZ(150px);
+}
+
+.face-2 {
+    transform: rotateY(45deg) translateZ(150px);
+}
+
+.face-3 {
+    transform: rotateY(90deg) translateZ(150px);
+}
+
+.face-4 {
+    transform: rotateY(135deg) translateZ(150px);
+}
+
+.face-5 {
+    transform: rotateY(180deg) translateZ(150px);
+}
+
+.face-6 {
+    transform: rotateY(225deg) translateZ(150px);
+}
+
+.face-7 {
+    transform: rotateY(270deg) translateZ(150px);
+}
+
+.face-8 {
+    transform: rotateY(315deg) translateZ(150px);
+}
+
+/* Hover effect */
+.cube-face:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .rotating-tools-wrapper {
+        height: 300px;
+    }
+    
+    .scene {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .cube-face {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .tool-icon {
+        font-size: 2.5rem;
+    }
+    
+    .tool-name {
+        font-size: 1rem;
+    }
+    
+    .face-1 { transform: rotateY(0deg) translateZ(100px); }
+    .face-2 { transform: rotateY(45deg) translateZ(100px); }
+    .face-3 { transform: rotateY(90deg) translateZ(100px); }
+    .face-4 { transform: rotateY(135deg) translateZ(100px); }
+    .face-5 { transform: rotateY(180deg) translateZ(100px); }
+    .face-6 { transform: rotateY(225deg) translateZ(100px); }
+    .face-7 { transform: rotateY(270deg) translateZ(100px); }
+    .face-8 { transform: rotateY(315deg) translateZ(100px); }
+}
