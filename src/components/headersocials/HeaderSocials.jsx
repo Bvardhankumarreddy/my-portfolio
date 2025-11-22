@@ -58,7 +58,9 @@ const HeaderSocials = () => {
     ];
 
     return (
-        <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-10 lg:gap-11 my-3 sm:my-4 md:my-5 ml-4 sm:ml-8 md:ml-16 lg:ml-32">
+        <div className={`w-full flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-10 lg:gap-11 py-3 sm:py-4 md:py-5 transition-colors duration-300 ${
+            theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
+        }`}>
             {socialLinks.map((social, index) => (
                 <a 
                     key={index}

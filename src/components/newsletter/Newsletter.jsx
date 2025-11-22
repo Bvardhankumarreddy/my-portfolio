@@ -43,7 +43,7 @@ const Newsletter = () => {
 
     return (
         <section className={`py-16 transition-colors duration-300 ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
+            theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
         }`}>
             <div className="container max-w-4xl mx-auto px-4">
                 <div className={`rounded-2xl shadow-xl p-8 md:p-12 transition-colors duration-300 ${

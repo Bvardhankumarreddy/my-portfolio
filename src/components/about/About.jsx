@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from "../../assests/bvkr2.png";
 import AboutBox from './AboutBox';
 import resume from "../../assests/BVKR_Resume_Devops.pdf";
 import { useTheme } from '../../context/ThemeContext';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { FaAws, FaDocker, FaGitAlt, FaNetworkWired, FaDollarSign, FaCode, FaCubes } from 'react-icons/fa';
+import { SiTerraform } from 'react-icons/si';
 import './about.css';
 
 const About = () => {
     const { theme } = useTheme();
     const [showPreview, setShowPreview] = useState(false);
+    const [expandedSkill, setExpandedSkill] = useState(null);
+    const skillsRef = useRef(null);
+    const isInView = useInView(skillsRef, { once: true, amount: 0.2 });
     
     // Calculate years of experience from January 5th, 2023
     const calculateExperience = () => {
@@ -93,37 +99,107 @@ const About = () => {
                     </div>
 
                     {/* Skills Grid Cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div ref={skillsRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {skills.map((skill, index) => (
-                            <div 
+                            <motion.div 
                                 key={index}
-                                className={`p-4 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 ${
+                                layout
+                                initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                                animate={isInView ? { 
+                                    opacity: 1, 
+                                    y: 0, 
+                                    scale: 1 
+                                } : { 
+                                    opacity: 0, 
+                                    y: 50, 
+                                    scale: 0.8 
+                                }}
+                                transition={{ 
+                                    duration: 0.5, 
+                                    delay: index * 0.1,
+                                    ease: "easeOut"
+                                }}
+                                className={`relative p-5 rounded-xl shadow-lg cursor-pointer transition-all duration-300 ${
                                     theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                                }`}
+                                } ${expandedSkill === index ? 'ring-2 ring-offset-2' : ''}`}
+                                style={{
+                                    ringColor: expandedSkill === index ? `rgb(${index * 30}, ${100 + index * 20}, ${200 - index * 10})` : 'transparent'
+                                }}
+                                onClick={() => setExpandedSkill(expandedSkill === index ? null : index)}
+                                whileHover={{ 
+                                    scale: 1.05, 
+                                    y: -5,
+                                    transition: { duration: 0.2 }
+                                }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                <div className="flex justify-center mb-3">
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${skill.bgColor}`}>
-                                        <span className="text-2xl">{skill.icon}</span>
+                                {/* Icon with glow effect */}
+                                <motion.div 
+                                    className="flex justify-center mb-3"
+                                    animate={expandedSkill === index ? { rotate: 360 } : { rotate: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${skill.bgColor} relative overflow-hidden shadow-lg`}>
+                                        <motion.div
+                                            animate={expandedSkill === index ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                                            transition={{ duration: 0.5 }}
+                                        >
+                                            <skill.icon className={`text-3xl text-white`} />
+                                        </motion.div>
+                                        {/* Glow effect */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 hover:opacity-30 transition-opacity duration-300 transform -skew-x-12"></div>
                                     </div>
-                                </div>
-                                <h3 className={`font-semibold text-xs mb-2 transition-colors duration-300 ${
+                                </motion.div>
+                                
+                                <h3 className={`font-bold text-sm mb-4 text-center transition-colors duration-300 ${
                                     theme === 'dark' ? 'text-white' : 'text-gray-900'
                                 }`}>{skill.name}</h3>
-                                
-                                {/* Progress Bar */}
-                                <div className={`w-full h-2 rounded-full mb-2 ${
-                                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
-                                }`}>
-                                    <div 
-                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${skill.progressColor}`}
-                                        style={{ width: `${skill.percentage}%` }}
-                                    ></div>
-                                </div>
-                                
-                                <p className={`text-xl font-bold transition-colors duration-300 ${
-                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                                }`}>{skill.percentage}%</p>
-                            </div>
+
+                                {/* Expandable content */}
+                                <AnimatePresence>
+                                    {expandedSkill === index && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="mt-3 pt-3 border-t border-gray-300"
+                                        >
+                                            <p className={`text-xs font-semibold mb-2 ${
+                                                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                            }`}>Technologies:</p>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {skill.technologies.map((tech, techIndex) => (
+                                                    <motion.span
+                                                        key={techIndex}
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ delay: techIndex * 0.05 }}
+                                                        className={`text-xs px-2 py-1 rounded-md ${
+                                                            theme === 'dark' 
+                                                                ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-gray-200' 
+                                                                : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700'
+                                                        } hover:shadow-md transition-shadow duration-200`}
+                                                    >
+                                                        {tech}
+                                                    </motion.span>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Click indicator */}
+                                <motion.div 
+                                    className={`absolute bottom-2 right-2 text-xs ${
+                                        theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                                    }`}
+                                    animate={expandedSkill === index ? { rotate: 180 } : { rotate: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    {expandedSkill === index ? '▲' : '▼'}
+                                </motion.div>
+                            </motion.div>
                         ))}
                     </div>
 
@@ -187,14 +263,86 @@ const About = () => {
 };
 
 const skills = [
-    { name: "Cloud Platforms", percentage: 50, bgColor: "bg-blue-100", progressColor: "bg-blue-500", icon: "☁️" },
-    { name: "Infrastructure Code", percentage: 70, bgColor: "bg-red-100", progressColor: "bg-red-500", icon: "🏗️" },
-    { name: "CI/CD pipelines", percentage: 70, bgColor: "bg-cyan-100", progressColor: "bg-cyan-500", icon: "🔄" },
-    { name: "Version Control", percentage: 85, bgColor: "bg-purple-100", progressColor: "bg-purple-500", icon: "👥" },
-    { name: "Networking", percentage: 65, bgColor: "bg-orange-100", progressColor: "bg-orange-500", icon: "📊" },
-    { name: "Cloud Cost Management", percentage: 90, bgColor: "bg-teal-100", progressColor: "bg-teal-500", icon: "💳" },
-    { name: "Scripting & Programming", percentage: 80, bgColor: "bg-green-100", progressColor: "bg-green-500", icon: "💻" },
-    { name: "Containerization", percentage: 70, bgColor: "bg-pink-100", progressColor: "bg-pink-500", icon: "🐳" },
+    { 
+        name: "Cloud Platforms", 
+        percentage: 50, 
+        bgColor: "bg-gradient-to-br from-orange-400 to-yellow-500", 
+        progressColor: "from-blue-400 to-blue-600", 
+        icon: FaAws,
+        iconColor: "text-orange-500",
+        technologies: ["AWS (EC2, S3, Lambda, RDS)", "Azure (VMs, Blob Storage)", "Google Cloud Platform"],
+        experience: "2+ years"
+    },
+    { 
+        name: "Infrastructure Code", 
+        percentage: 70, 
+        bgColor: "bg-gradient-to-br from-purple-500 to-indigo-600", 
+        progressColor: "from-red-400 to-red-600", 
+        icon: SiTerraform,
+        iconColor: "text-purple-600",
+        technologies: ["Terraform", "CloudFormation", "Ansible", "Pulumi"],
+        experience: "2+ years"
+    },
+    { 
+        name: "CI/CD pipelines", 
+        percentage: 70, 
+        bgColor: "bg-gradient-to-br from-blue-400 to-cyan-500", 
+        progressColor: "from-cyan-400 to-cyan-600", 
+        icon: FaCubes,
+        iconColor: "text-blue-500",
+        technologies: ["Jenkins", "GitHub Actions", "GitLab CI", "ArgoCD", "CircleCI"],
+        experience: "2+ years"
+    },
+    { 
+        name: "Version Control", 
+        percentage: 85, 
+        bgColor: "bg-gradient-to-br from-red-500 to-orange-600", 
+        progressColor: "from-purple-400 to-purple-600", 
+        icon: FaGitAlt,
+        iconColor: "text-red-600",
+        technologies: ["Git", "GitHub", "GitLab", "Bitbucket"],
+        experience: "3+ years"
+    },
+    { 
+        name: "Networking", 
+        percentage: 65, 
+        bgColor: "bg-gradient-to-br from-green-400 to-emerald-500", 
+        progressColor: "from-orange-400 to-orange-600", 
+        icon: FaNetworkWired,
+        iconColor: "text-green-600",
+        technologies: ["VPC", "Load Balancers", "DNS", "VPN", "Security Groups"],
+        experience: "1.5+ years"
+    },
+    { 
+        name: "Cloud Cost Management", 
+        percentage: 90, 
+        bgColor: "bg-gradient-to-br from-yellow-400 to-amber-500", 
+        progressColor: "from-teal-400 to-teal-600", 
+        icon: FaDollarSign,
+        iconColor: "text-yellow-600",
+        technologies: ["AWS Cost Explorer", "CloudWatch", "Budget Alerts", "Resource Tagging"],
+        experience: "2+ years"
+    },
+    { 
+        name: "Scripting & Programming", 
+        percentage: 80, 
+        bgColor: "bg-gradient-to-br from-teal-400 to-cyan-500", 
+        progressColor: "from-green-400 to-green-600", 
+        icon: FaCode,
+        iconColor: "text-teal-600",
+        technologies: ["Python", "Bash", "PowerShell", "JavaScript", "YAML"],
+        experience: "3+ years"
+    },
+    { 
+        name: "Containerization", 
+        percentage: 70, 
+        bgColor: "bg-gradient-to-br from-blue-500 to-blue-600", 
+        progressColor: "from-pink-400 to-pink-600", 
+        icon: FaDocker,
+        iconColor: "text-blue-600",
+        technologies: ["Docker", "Kubernetes", "ECS", "Helm", "Docker Compose"],
+        experience: "2+ years"
+    },
 ];
 
 export default About;

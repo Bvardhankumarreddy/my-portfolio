@@ -282,15 +282,15 @@ const Projects = () => {
                                         </div>
                                     </div>
 
-                                    {/* Project Content - Flex grow to fill space */}
-                                    <div className="p-6 flex flex-col flex-grow">
-                                        <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
+                                        {/* Project Content - Flex grow to fill space */}
+                                    <div className="p-4 sm:p-6 flex flex-col flex-grow">
+                                        <h3 className={`text-lg sm:text-xl font-bold mb-3 transition-colors duration-300 ${
                                             theme === 'dark' ? 'text-white' : 'text-gray-900'
                                         }`}>
                                             {project.title}
                                         </h3>
 
-                                        <p className={`text-sm mb-4 transition-colors duration-300 ${
+                                        <p className={`text-xs sm:text-sm mb-4 transition-colors duration-300 ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                         }`}>
                                             {project.shortDescription}
@@ -298,19 +298,17 @@ const Projects = () => {
 
                                         {/* Tech Stack Badges - Fixed height container */}
                                         <div className="mb-4 min-h-[60px]">
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                                 {project.techStack.map((tech, index) => (
                                                     <span 
                                                         key={index} 
-                                                        className={`${techStackColors[tech] || 'bg-gray-500'} text-white text-xs px-2.5 py-1 rounded-full font-medium`}
+                                                        className={`${techStackColors[tech] || 'bg-gray-500'} text-white text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-full font-medium`}
                                                     >
                                                         {tech}
                                                     </span>
                                                 ))}
                                             </div>
-                                        </div>
-
-                                        {/* Features List - Fixed height container */}
+                                        </div>                                        {/* Features List - Fixed height container */}
                                         <div className="mb-4 min-h-[72px]">
                                             <h4 className={`text-xs font-semibold mb-2 transition-colors duration-300 ${
                                                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -331,7 +329,7 @@ const Projects = () => {
                                         <div className="flex-grow"></div>
 
                                         {/* Metrics - Responsive grid */}
-                                        <div className={`grid grid-cols-3 gap-2 sm:gap-3 mb-4 p-3 rounded-lg ${
+                                        <div className={`grid grid-cols-3 gap-1 sm:gap-2 md:gap-3 mb-4 p-2 sm:p-3 rounded-lg ${
                                             theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
                                         }`}>
                                             {Object.entries(project.metrics).map(([key, value]) => {
@@ -341,13 +339,13 @@ const Projects = () => {
                                                     : value;
                                                 
                                                 return (
-                                                    <div key={key} className="text-center">
-                                                        <div className={`text-xs sm:text-sm font-bold transition-colors duration-300 ${
+                                                    <div key={key} className="text-center min-w-0">
+                                                        <div className={`text-xs sm:text-sm font-bold transition-colors duration-300 truncate ${
                                                             theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
                                                         }`}>
                                                             {displayValue}
                                                         </div>
-                                                        <div className={`text-[10px] sm:text-xs mt-0.5 transition-colors duration-300 break-words ${
+                                                        <div className={`text-[9px] sm:text-xs mt-0.5 transition-colors duration-300 break-words leading-tight ${
                                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                                         }`}>
                                                             {key}
@@ -358,29 +356,29 @@ const Projects = () => {
                                         </div>
 
                                         {/* Action Buttons - At bottom */}
-                                        <div className="flex gap-3">
+                                        <div className="flex gap-2 sm:gap-3">
                                             <a 
                                                 href={project.liveUrl} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
-                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2"
+                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium py-2.5 px-2 sm:px-4 rounded-lg transition-colors duration-300 flex items-center justify-center gap-1 sm:gap-2 min-w-0"
                                             >
-                                                <FaExternalLinkAlt size={14} />
-                                                Live Demo
+                                                <FaExternalLinkAlt size={12} className="flex-shrink-0" />
+                                                <span className="truncate">Live Demo</span>
                                             </a>
                                             {project.githubUrl && (
                                                 <a 
                                                     href={project.githubUrl} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    className={`flex-1 text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 ${
+                                                    className={`flex-1 text-xs sm:text-sm font-medium py-2.5 px-2 sm:px-4 rounded-lg transition-colors duration-300 flex items-center justify-center gap-1 sm:gap-2 min-w-0 ${
                                                         theme === 'dark' 
                                                             ? 'bg-gray-700 hover:bg-gray-600 text-white' 
                                                             : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
                                                     }`}
                                                 >
-                                                    <FaGithub size={16} />
-                                                    GitHub
+                                                    <FaGithub size={14} className="flex-shrink-0" />
+                                                    <span className="truncate">GitHub</span>
                                                 </a>
                                             )}
                                         </div>

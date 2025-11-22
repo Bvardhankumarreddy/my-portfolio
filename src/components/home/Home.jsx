@@ -6,6 +6,7 @@ import FloatingIcons from './FloatingIcons';
 import { FaLinkedin, FaGithub, FaEnvelope, FaAws, FaChevronDown, FaCloud, FaYoutube, FaInstagram, FaMedium } from 'react-icons/fa';
 import { SiKubernetes, SiTerraform, SiLeetcode, SiGeeksforgeeks } from 'react-icons/si';
 import { sendContactNotification, sendContactConfirmation } from '../../aws/emailService';
+import { validateEmailBeforeSending } from '../../utils/emailValidation';
 
 const Home = () => {
     const { theme } = useTheme();
@@ -16,6 +17,8 @@ const Home = () => {
     const [showHireForm, setShowHireForm] = useState(false);
     const [formStatus, setFormStatus] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);
+    const [emailSuggestion, setEmailSuggestion] = useState(null);
+    const [attachment, setAttachment] = useState(null);
     const hireFormRef = useRef();
 
     const roles = ['DevOps Engineer', 'Cloud Enthusiast', 'Automation Expert', 'Infrastructure Architect'];
@@ -51,6 +54,37 @@ const Home = () => {
     const handleCloseForm = () => {
         setShowHireForm(false);
         setFormStatus("");
+        setAttachment(null);
+        setEmailSuggestion(null);
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                setFormStatus("❌ File size must be less than 5MB");
+                e.target.value = null;
+                return;
+            }
+            // Check file type (only PDF, DOC, DOCX)
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                setFormStatus("❌ Only PDF, DOC, and DOCX files are allowed");
+                e.target.value = null;
+                return;
+            }
+            setAttachment(file);
+            setFormStatus("");
+        }
+    };
+
+    const removeAttachment = () => {
+        setAttachment(null);
+        if (hireFormRef.current) {
+            const fileInput = hireFormRef.current.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = null;
+        }
     };
 
     const sendHireEmail = async (e) => {
@@ -106,17 +140,54 @@ const Home = () => {
             return;
         }
 
-        // Send email via AWS SES
+        // Validate email before sending
         setIsVerifying(true);
-        setFormStatus("Sending your request...");
+        setFormStatus("Validating email address...");
+        setEmailSuggestion(null);
 
         try {
+            const emailValidation = await validateEmailBeforeSending(formData.email);
+            
+            if (!emailValidation.valid) {
+                setIsVerifying(false);
+                setFormStatus(`❌ ${emailValidation.error}`);
+                
+                // Show suggestion if available
+                if (emailValidation.suggestion) {
+                    setEmailSuggestion(emailValidation.suggestion);
+                }
+                return;
+            }
+
+            // Send email via AWS SES
+            setFormStatus("Sending your request...");
+
+            // Prepare attachment if exists
+            let attachmentData = null;
+            if (attachment) {
+                // Convert file to base64
+                const fileReader = new FileReader();
+                attachmentData = await new Promise((resolve, reject) => {
+                    fileReader.onload = () => {
+                        const base64 = fileReader.result.split(',')[1]; // Remove data:*/*;base64, prefix
+                        resolve({
+                            name: attachment.name,
+                            contentType: attachment.type,
+                            base64Data: base64
+                        });
+                    };
+                    fileReader.onerror = reject;
+                    fileReader.readAsDataURL(attachment);
+                });
+            }
+
             // Send notification to admin
             await sendContactNotification({
                 name: formData.name,
                 email: formData.email,
                 subject: formData.subject,
-                message: formData.message
+                message: formData.message,
+                attachment: attachmentData
             });
 
             // Send confirmation to user
@@ -125,8 +196,10 @@ const Home = () => {
                 email: formData.email
             });
 
-            setFormStatus("✅ Message sent successfully! I'll get back to you soon. Check your email for confirmation.");
+            setFormStatus("✅ Message sent successfully! I'll get back to you soon. Check your email inbox (or spam folder) for confirmation.");
             setIsVerifying(false);
+            setEmailSuggestion(null);
+            setAttachment(null);
             hireFormRef.current.reset();
             setTimeout(() => {
                 handleCloseForm();
@@ -435,6 +508,53 @@ const Home = () => {
                                 ></textarea>
                             </div>
 
+                            <div>
+                                <label className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                }`}>Attachment <span className="text-sm text-gray-500">(Optional - PDF, DOC, DOCX, Max 5MB)</span></label>
+                                <div className="flex items-center gap-3">
+                                    <label className={`cursor-pointer inline-flex items-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed transition-all duration-300 ${
+                                        theme === 'dark'
+                                            ? 'border-gray-600 hover:border-blue-500 bg-gray-700 hover:bg-gray-600 text-gray-300'
+                                            : 'border-gray-300 hover:border-blue-500 bg-white hover:bg-gray-50 text-gray-700'
+                                    }`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                        <span className="text-sm font-medium">Choose File</span>
+                                        <input 
+                                            type="file"
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={handleFileChange}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    {attachment && (
+                                        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                                            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                                        }`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <span className={`text-sm truncate max-w-[150px] ${
+                                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                            }`} title={attachment.name}>
+                                                {attachment.name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={removeAttachment}
+                                                className="ml-2 text-red-500 hover:text-red-700 transition-colors"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             {formStatus && (
                                 <div className={`p-4 rounded-lg ${
                                     formStatus.includes('success') 
@@ -442,6 +562,9 @@ const Home = () => {
                                         : 'bg-red-100 text-red-800'
                                 }`}>
                                     {formStatus}
+                                    {formStatus.includes('success') && (
+                                        <p className="text-sm mt-2">📧 Please check your inbox (or spam folder) for confirmation email.</p>
+                                    )}
                                 </div>
                             )}
 

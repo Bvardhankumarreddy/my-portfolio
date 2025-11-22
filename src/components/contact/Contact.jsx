@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa';
 import { sendContactNotification, sendContactConfirmation } from '../../aws/emailService';
+import { validateEmailBeforeSending } from '../../utils/emailValidation';
 
 const Contact = () => {
     const { theme } = useTheme();
@@ -11,6 +12,7 @@ const Contact = () => {
     const [messageLength, setMessageLength] = useState(0);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
+    const [emailSuggestion, setEmailSuggestion] = useState(null);
 
     // Validation rules
     const validateField = useCallback((name, value) => {
@@ -92,6 +94,7 @@ const Contact = () => {
         setErrors({});
         setTouched({});
         setStatusMessage('');
+        setEmailSuggestion(null);
         form.current.reset();
     };
 
@@ -104,7 +107,8 @@ const Contact = () => {
         }
 
         setIsLoading(true);
-        setStatusMessage("Sending your message...");
+        setStatusMessage("Validating email address...");
+        setEmailSuggestion(null);
   
         try {
             // Get values from form elements
@@ -114,12 +118,30 @@ const Contact = () => {
             const subject = formElements.subject.value;
             const message = formElements.message.value;
 
+            // Validate email before sending
+            const emailValidation = await validateEmailBeforeSending(email);
+            
+            if (!emailValidation.valid) {
+                setIsLoading(false);
+                setStatusMessage(`❌ ${emailValidation.error}`);
+                setErrors(prev => ({ ...prev, user_email: emailValidation.error }));
+                
+                // Show suggestion if available
+                if (emailValidation.suggestion) {
+                    setEmailSuggestion(emailValidation.suggestion);
+                }
+                return;
+            }
+
+            setStatusMessage("Sending your message...");
+
             // Send notification to admin
             await sendContactNotification({
                 name,
                 email,
                 subject,
-                message
+                message,
+                attachment: null
             });
 
             // Send confirmation to user
@@ -128,7 +150,7 @@ const Contact = () => {
                 email
             });
 
-            setStatusMessage("Message sent successfully! 🎉 Check your email for confirmation.");
+            setStatusMessage("Message sent successfully! 🎉 Check your email inbox (or spam folder) for confirmation.");
             setIsLoading(false);
             clearForm();
         } catch (error) {
@@ -234,6 +256,29 @@ const Contact = () => {
                             </div>
                             {errors.user_email && touched.user_email && (
                                 <p className="text-red-500 text-sm mt-1">{errors.user_email}</p>
+                            )}
+                            {emailSuggestion && (
+                                <div className={`mt-2 p-3 rounded-lg border ${
+                                    theme === 'dark' 
+                                        ? 'bg-yellow-900/30 border-yellow-600 text-yellow-200' 
+                                        : 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                                }`}>
+                                    <p className="text-sm">
+                                        Did you mean{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                form.current.elements.user_email.value = emailSuggestion;
+                                                setEmailSuggestion(null);
+                                                setErrors(prev => ({ ...prev, user_email: '' }));
+                                            }}
+                                            className="font-semibold underline hover:no-underline"
+                                        >
+                                            {emailSuggestion}
+                                        </button>
+                                        ?
+                                    </p>
+                                </div>
                             )}
                         </div>
                     </div>

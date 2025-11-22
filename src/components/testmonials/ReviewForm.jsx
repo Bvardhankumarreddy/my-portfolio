@@ -3,6 +3,7 @@ import { FaStar, FaTimes, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { addReview } from '../../aws/reviewService';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { motion, AnimatePresence } from 'framer-motion';
+import { validateEmailBeforeSending } from '../../utils/emailValidation';
 
 const ReviewForm = ({ onClose, theme }) => {
     // Only rating is controlled, text fields are uncontrolled
@@ -18,6 +19,7 @@ const ReviewForm = ({ onClose, theme }) => {
 
     // Refs for uncontrolled fields
     const nameRef = useRef();
+    const emailRef = useRef();
     const companyRef = useRef();
     const roleRef = useRef();
     const commentRef = useRef();
@@ -38,6 +40,7 @@ const ReviewForm = ({ onClose, theme }) => {
             });
         };
         const name = nameRef.current.value;
+        const email = emailRef.current.value;
         const company = companyRef.current.value;
         const role = roleRef.current.value;
         const comment = commentRef.current.value;
@@ -56,6 +59,14 @@ const ReviewForm = ({ onClose, theme }) => {
             newErrors.name = 'Name contains too many repeated characters';
         } else if (/^\d+$/.test(name.trim())) {
             newErrors.name = 'Name cannot be only numbers';
+        }
+
+        // Email validation (optional field)
+        if (email.trim()) {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(email.trim())) {
+                newErrors.email = 'Please enter a valid email address';
+            }
         }
 
         if (!company.trim()) {
@@ -82,8 +93,8 @@ const ReviewForm = ({ onClose, theme }) => {
             newErrors.comment = 'Please share your feedback';
         } else if (comment.trim().length < 10) {
             newErrors.comment = 'Comment must be at least 10 characters';
-        } else if (comment.trim().length > 500) {
-            newErrors.comment = 'Comment must be less than 500 characters';
+        } else if (comment.trim().length > 1500) {
+            newErrors.comment = 'Comment must be less than 1500 characters';
         } else if (containsBadWord(comment)) {
             newErrors.comment = 'Please keep your feedback respectful and professional';
         }
@@ -123,6 +134,7 @@ const ReviewForm = ({ onClose, theme }) => {
         try {
             await addReview({
                 name: nameRef.current.value.trim(),
+                email: emailRef.current.value.trim() || null,
                 company: companyRef.current.value.trim(),
                 role: roleRef.current.value.trim(),
                 title: `${roleRef.current.value.trim()} at ${companyRef.current.value.trim()}`,
@@ -139,6 +151,7 @@ const ReviewForm = ({ onClose, theme }) => {
             setTimeout(() => {
                 // Clear fields
                 nameRef.current.value = '';
+                emailRef.current.value = '';
                 companyRef.current.value = '';
                 roleRef.current.value = '';
                 commentRef.current.value = '';
@@ -282,6 +295,37 @@ const ReviewForm = ({ onClose, theme }) => {
                         )}
                     </div>
 
+                    {/* Email Field (Optional) */}
+                    <div>
+                        <label className={`block text-sm font-semibold mb-2 ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                            Email <span className="text-sm font-normal text-gray-500">(Optional)</span>
+                        </label>
+                        <input
+                            type="email"
+                            name="email"
+                            ref={emailRef}
+                            onChange={handleChange}
+                            placeholder="your.email@example.com"
+                            className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
+                                errors.email
+                                    ? 'border-red-500 focus:border-red-500'
+                                    : theme === 'dark'
+                                    ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
+                                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+                            } outline-none`}
+                        />
+                        {errors.email && (
+                            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                        )}
+                        <p className={`text-xs mt-1 ${
+                            theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                        }`}>
+                            Receive notifications when your review is approved
+                        </p>
+                    </div>
+
                     {/* Company Field */}
                     <div>
                         <label className={`block text-sm font-semibold mb-2 ${
@@ -419,7 +463,7 @@ const ReviewForm = ({ onClose, theme }) => {
                         <p className={`text-xs mt-1 text-right ${
                             theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
                         }`}>
-                            {commentLength}/500
+                            {commentLength}/1500
                         </p>
                     </div>
 
@@ -474,6 +518,9 @@ const ReviewForm = ({ onClose, theme }) => {
                             </motion.div>
                             <p className="font-semibold">Review Submitted Successfully!</p>
                             <p className="text-sm mt-1">Your review is pending approval and will appear soon.</p>
+                            {emailRef.current?.value && (
+                                <p className="text-sm mt-2 font-medium">📧 Check your email inbox (or spam folder) for confirmation!</p>
+                            )}
                         </motion.div>
                     )}
 

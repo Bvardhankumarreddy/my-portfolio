@@ -1,4 +1,5 @@
 import { dynamoDB } from './dynamodbConfig';
+import { sendReviewSubmissionConfirmation, sendReviewApprovalNotification } from './emailService';
 
 const TABLE_NAME = process.env.REACT_APP_DYNAMODB_TABLE_NAME || 'portfolio-reviews';
 
@@ -76,6 +77,7 @@ export const addReview = async (reviewData) => {
         const item = {
             id: reviewId,
             name: reviewData.name,
+            email: reviewData.email || null,
             company: reviewData.company || 'N/A',
             role: reviewData.role || 'Visitor',
             title: reviewData.title,
@@ -92,6 +94,20 @@ export const addReview = async (reviewData) => {
         };
 
         await dynamoDB.put(params).promise();
+        
+        // Send confirmation email if email provided
+        if (reviewData.email) {
+            try {
+                await sendReviewSubmissionConfirmation({
+                    name: reviewData.name,
+                    email: reviewData.email,
+                    rating: reviewData.rating
+                });
+            } catch (emailError) {
+                console.error('Error sending review confirmation email:', emailError);
+                // Don't fail the review submission if email fails
+            }
+        }
         
         return { success: true, reviewId };
     } catch (error) {
@@ -154,7 +170,17 @@ export const getUnapprovedReviews = async () => {
  */
 export const updateReviewApproval = async (reviewId, approved) => {
     try {
-        const params = {
+        // First, get the review details to send email
+        const getParams = {
+            TableName: TABLE_NAME,
+            Key: { id: reviewId }
+        };
+        
+        const reviewResult = await dynamoDB.get(getParams).promise();
+        const review = reviewResult.Item;
+        
+        // Update approval status
+        const updateParams = {
             TableName: TABLE_NAME,
             Key: { id: reviewId },
             UpdateExpression: 'set approved = :approved, updatedAt = :updatedAt',
@@ -164,7 +190,22 @@ export const updateReviewApproval = async (reviewId, approved) => {
             }
         };
 
-        await dynamoDB.update(params).promise();
+        await dynamoDB.update(updateParams).promise();
+        
+        // Send approval email if email exists and review was approved
+        if (approved && review && review.email) {
+            try {
+                await sendReviewApprovalNotification({
+                    name: review.name,
+                    email: review.email,
+                    rating: review.rating,
+                    comment: review.comment
+                });
+            } catch (emailError) {
+                console.error('Error sending review approval email:', emailError);
+                // Don't fail the approval if email fails
+            }
+        }
         
         return { success: true };
     } catch (error) {
