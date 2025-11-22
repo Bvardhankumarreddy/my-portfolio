@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { FaCheck, FaTimes, FaStar, FaTrash, FaLock, FaSignOutAlt, FaPlus, FaEdit, FaProjectDiagram, FaCertificate, FaBlog, FaPaperPlane } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaStar, FaTrash, FaLock, FaSignOutAlt, FaPlus, FaEdit, FaProjectDiagram, FaCertificate, FaBlog, FaPaperPlane, FaEnvelope, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { getUnapprovedReviews, updateReviewApproval, deleteReview } from '../../aws/reviewService';
 import { 
     getProjects, addProject, updateProject, deleteProject,
     getCertifications, addCertification, updateCertification, deleteCertification,
     getBlogs, addBlog, updateBlog, deleteBlog 
 } from '../../aws/contentService';
+import { getSubscribers } from '../../aws/contentNotificationService';
+import { deleteSubscriber } from '../../aws/newsletterService';
 import AddEditModal from './AddEditModal';
 import NotificationModal from '../newsletter/NotificationModal';
 import './adminpanel.css';
@@ -13,11 +15,12 @@ import { useTheme } from '../../context/ThemeContext';
 
 const AdminPanel = () => {
     const { theme } = useTheme();
-    const [activeTab, setActiveTab] = useState('reviews'); // reviews, projects, certifications, blogs
+    const [activeTab, setActiveTab] = useState('reviews'); // reviews, projects, certifications, blogs, subscribers
     const [pendingReviews, setPendingReviews] = useState([]);
     const [projects, setProjects] = useState([]);
     const [certifications, setCertifications] = useState([]);
     const [blogs, setBlogs] = useState([]);
+    const [subscribers, setSubscribers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
@@ -43,16 +46,18 @@ const AdminPanel = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [reviewsData, projectsData, certificationsData, blogsData] = await Promise.all([
+            const [reviewsData, projectsData, certificationsData, blogsData, subscribersData] = await Promise.all([
                 getUnapprovedReviews(),
                 getProjects(),
                 getCertifications(),
-                getBlogs()
+                getBlogs(),
+                getSubscribers()
             ]);
             setPendingReviews(reviewsData);
             setProjects(projectsData);
             setCertifications(certificationsData);
             setBlogs(blogsData);
+            setSubscribers(subscribersData);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -217,6 +222,13 @@ const AdminPanel = () => {
                             label={`Blogs (${blogs.length})`}
                             theme={theme}
                         />
+                        <TabButton 
+                            active={activeTab === 'subscribers'}
+                            onClick={() => setActiveTab('subscribers')}
+                            icon={<FaEnvelope />}
+                            label={`Subscribers (${subscribers.length})`}
+                            theme={theme}
+                        />
                     </div>
                 </div>
 
@@ -305,6 +317,18 @@ const AdminPanel = () => {
                                     onDelete={async (id) => {
                                         if (window.confirm('Delete this blog?')) {
                                             await deleteBlog(id);
+                                            fetchAllData();
+                                        }
+                                    }}
+                                    theme={theme}
+                                />
+                            )}
+                            {activeTab === 'subscribers' && (
+                                <SubscribersTab
+                                    subscribers={subscribers}
+                                    onDelete={async (email) => {
+                                        if (window.confirm(`Remove ${email} from subscribers?`)) {
+                                            await deleteSubscriber(email);
                                             fetchAllData();
                                         }
                                     }}
@@ -540,4 +564,149 @@ const ContentTab = ({ type, items, onAdd, onEdit, onDelete, theme }) => {
     );
 };
 
+// Subscribers Tab Component
+const SubscribersTab = ({ subscribers, onDelete, theme }) => {
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    if (subscribers.length === 0) {
+        return (
+            <div className="text-center py-12">
+                <FaEnvelope className={`text-6xl mx-auto mb-4 ${
+                    theme === 'dark' ? 'text-gray-600' : 'text-gray-300'
+                }`} />
+                <p className={`text-xl ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    No subscribers yet
+                </p>
+            </div>
+        );
+    }
+
+    const verifiedSubscribers = subscribers.filter(s => s.verified);
+    const pendingSubscribers = subscribers.filter(s => !s.verified);
+
+    return (
+        <div className="space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className={`p-4 rounded-lg border-2 ${
+                    theme === 'dark'
+                        ? 'border-gray-700 bg-gray-700'
+                        : 'border-gray-200 bg-gray-50'
+                }`}>
+                    <div className="flex items-center gap-3">
+                        <FaEnvelope className="text-3xl text-blue-500" />
+                        <div>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Total Subscribers
+                            </p>
+                            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {subscribers.length}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className={`p-4 rounded-lg border-2 ${
+                    theme === 'dark'
+                        ? 'border-gray-700 bg-gray-700'
+                        : 'border-gray-200 bg-gray-50'
+                }`}>
+                    <div className="flex items-center gap-3">
+                        <FaCheckCircle className="text-3xl text-green-500" />
+                        <div>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Verified
+                            </p>
+                            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {verifiedSubscribers.length}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className={`p-4 rounded-lg border-2 ${
+                    theme === 'dark'
+                        ? 'border-gray-700 bg-gray-700'
+                        : 'border-gray-200 bg-gray-50'
+                }`}>
+                    <div className="flex items-center gap-3">
+                        <FaTimesCircle className="text-3xl text-yellow-500" />
+                        <div>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Pending
+                            </p>
+                            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {pendingSubscribers.length}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Subscribers List */}
+            <div>
+                <h3 className={`text-xl font-bold mb-4 ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>All Subscribers</h3>
+                <div className="space-y-3">
+                    {subscribers.map((subscriber) => (
+                        <div
+                            key={subscriber.email}
+                            className={`p-4 rounded-lg border-2 transition-all hover:shadow-lg ${
+                                theme === 'dark'
+                                    ? 'border-gray-700 bg-gray-700'
+                                    : 'border-gray-200 bg-gray-50'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <p className={`font-semibold text-lg ${
+                                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                        }`}>{subscriber.email}</p>
+                                        {subscriber.verified ? (
+                                            <span className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                                <FaCheckCircle /> Verified
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+                                                <FaTimesCircle /> Pending
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className={`text-sm ${
+                                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                    }`}>
+                                        Subscribed: {formatDate(subscriber.createdAt)}
+                                    </p>
+                                    {subscriber.verifiedAt && (
+                                        <p className={`text-sm ${
+                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                        }`}>
+                                            Verified: {formatDate(subscriber.verifiedAt)}
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => onDelete(subscriber.email)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                >
+                                    <FaTrash /> Remove
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default AdminPanel;
+

@@ -182,3 +182,26 @@ export const getVerifiedSubscribers = async () => {
         throw new Error('Failed to retrieve subscribers.');
     }
 };
+
+/**
+ * Delete a subscriber (admin function)
+ */
+export const deleteSubscriber = async (email) => {
+    try {
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        await dynamoDB.delete({
+            TableName: NEWSLETTER_TABLE,
+            Key: { email: normalizedEmail }
+        }).promise();
+
+        return {
+            success: true,
+            message: 'Subscriber removed successfully'
+        };
+
+    } catch (error) {
+        console.error('Error deleting subscriber:', error);
+        throw new Error('Failed to delete subscriber.');
+    }
+};
