@@ -37,16 +37,6 @@ const staticData = [
     },
     {
         id: 3,
-        image: Image1,
-        title: "Ram Gopal",
-        name: "Ram Gopal",
-        subtitle: "Lead Product Owner - I at Bajaj Technology Services",
-        rating: 5,
-        comment:
-          "I appreciate how you always go above and beyond to help out your colleagues. Your dedication is truly inspiring. Your positive attitude and willingness to collaborate make our team a great place to work. Thank you for being such a supportive peer. I wanted to recognize your exceptional problem-solving skills. Your ability to think creatively and find solutions is incredibly valuable to our team. Your attention to detail and high-quality work do not go unnoticed. Thank you for your consistent commitment to excellence. I admire your strong communication skills and the way you foster open and honest dialogue within our team.",
-    },
-    {
-        id: 4,
         image: Image2,
         title: "Daddiru Akriti",
         name: "Daddiru Akriti",
@@ -56,7 +46,7 @@ const staticData = [
           "Words alone can't capture the appreciation for your dedication and hard work. I strive to deliver high-quality results and remain committed to excellence in every project I undertake. With a focus on growth and consistency, I aim to make a meaningful impact throughout my career. Here's to pushing boundaries and achieving greatness every day!",
     },
     {
-        id: 5,
+        id: 4,
         image: Image3,
         title: "Devendra Dilip Hazare",
         name: "Devendra Dilip Hazare",
@@ -66,7 +56,7 @@ const staticData = [
           "You've performed admirably within your team, proving to be a valuable asset. Maintain this level of energy and dedication for future endeavors. Great job!",
     },
     {
-        id: 6,
+        id: 5,
         image: Image1,
         title: "Pillalamri Krishna Dheeraj",
         name: "Pillalamri Krishna Dheeraj",
@@ -76,7 +66,7 @@ const staticData = [
           "A great friend and an excellent developer. He grasped and mastered a lot of technologies is a feat which can be achieved by only few people. He is always available for any issues and tasks which are out of his scope and goes above and beyond in solving them.",
     },
     {
-        id: 7,
+        id: 6,
         image: Image2,
         title: "Anita Ashitosh Shinde",
         name: "Anita Ashitosh Shinde",
@@ -86,7 +76,7 @@ const staticData = [
           "Your dedication shines bright, making our team stronger. Thank you for your invaluable contributions.",
     },
     {
-        id: 8,
+        id: 7,
         image: Image3,
         title: "Shreeharsh Pandey",
         name: "Shreeharsh Pandey",
@@ -96,7 +86,7 @@ const staticData = [
           "Great cooperation and support from the team. Hardworking and available at any point in time. Thanks for helping out",
     },
     {
-        id: 9,
+        id: 8,
         image: Image1,
         title: "Ankita Mandal",
         name: "Ankita Mandal",
@@ -105,7 +95,7 @@ const staticData = [
         comment: "Thank you for your hard work, dedication and invaluable contributions. Your positive attitude and willingness to collaborate make our team a great place to work.",
     },
     {
-        id: 10,
+        id: 9,
         image: Image2,
         title: "Ashok Deshmukh",
         name: "Ashok Deshmukh",
